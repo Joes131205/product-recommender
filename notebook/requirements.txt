@@ -1,0 +1,9 @@
+pandas 
+numpy 
+sqlalchemy 
+matplotlib 
+seaborn 
+fg-data-profiling 
+scikit-learn 
+joblib 
+jupyter
