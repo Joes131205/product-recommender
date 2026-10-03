@@ -1,7 +1,5 @@
-fastapi 
-uvicorn 
-pydantic 
-scikit-learn 
-joblib 
-pandas 
-numpy
+fastapi
+uvicorn
+pandas
+scikit-learn==1.6.1
+joblib

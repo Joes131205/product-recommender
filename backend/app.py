@@ -46,7 +46,7 @@ def get_recommended_product(customer_id: str, n: int = 3):
 
     cluster_id = int(user_segment["cluster"].iloc[0])
 
-    # Pull candidate products based on the cluster
+    # Pull candidate products based on the cluster.
     candidate_query = """
         SELECT 
             oi.discount,
@@ -56,6 +56,9 @@ def get_recommended_product(customer_id: str, n: int = 3):
             dp.category,
             dp.sub_category,
             dp.product_name,
+            SUM(oi.sales) as total_sales,
+            SUM(oi.quantity) as total_qty,
+            ROUND(CASE WHEN SUM(oi.quantity) > 0 THEN SUM(oi.sales) / SUM(oi.quantity) ELSE 0 END, 2) as avg_unit_price,
             COUNT(*) as popularity
         FROM order_items oi
         JOIN orders o ON oi.order_key = o.order_key
@@ -87,11 +90,29 @@ def get_recommended_product(customer_id: str, n: int = 3):
     predictions = clf_model.predict(candidates[feature_cols])
 
     # Filter for profitable items only (1 = Profitable, 0 = Loss)
-    profitable_items = candidates[predictions == 1]["product_name"].tolist()
+    profitable = candidates[predictions == 1]
+
+    # Build recommendation objects including product name and average unit price
+    recommendations = []
+    for _, row in profitable.iterrows():
+        recommendations.append(
+            {
+                "product_name": row["product_name"],
+                "avg_unit_price": float(row.get("avg_unit_price", 0) or 0),
+            }
+        )
 
     return {
         "customer_id": customer_id,
         "cluster": cluster_id,
-        "total_profitable_found": len(profitable_items),
-        "recommendations": profitable_items[:n],
+        "total_profitable_found": len(recommendations),
+        "recommendations": recommendations[:n],
     }
+
+
+@app.get("/customers", status_code=status.HTTP_200_OK)
+def list_customers(limit: int = 200):
+    df = pd.read_sql_query(
+        "SELECT customer_id FROM dim_customers LIMIT ?", conn, params=[limit]
+    )
+    return {"count": len(df), "customers": df["customer_id"].tolist()}
