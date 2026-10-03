@@ -4,11 +4,11 @@ import joblib
 import pandas as pd
 from fastapi import FastAPI, HTTPException, status
 
-conn = sqlite3.connect("./superstore.sqlite", check_same_thread=False)
+conn = sqlite3.connect("../superstore.sqlite", check_same_thread=False)
 
-clf_model = joblib.load("./profit_classification.pkl")
-kmeans_model = joblib.load("./user_clustering.pkl")
-rfm_scaler = joblib.load("./rfm_scale.pkl")
+clf_model = joblib.load("../model/profit_classification.pkl")
+kmeans_model = joblib.load("../model/user_clustering.pkl")
+rfm_scaler = joblib.load("../model/rfm_scale.pkl")
 
 app = FastAPI(title="Product Recommendation Model")
 
